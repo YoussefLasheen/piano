@@ -254,7 +254,7 @@ class _InteractivePianoState extends State<InteractivePiano> {
           : () => widget.onNotePositionTapped!(notePosition);
 }
 
-class _PianoKey extends StatefulWidget {
+class _PianoKey extends StatelessWidget {
   final NotePosition notePosition;
   final double keyWidth;
   final BorderRadius _borderRadius;
@@ -282,138 +282,77 @@ class _PianoKey extends StatefulWidget {
         super(key: key);
 
   @override
-  __PianoKeyState createState() => __PianoKeyState();
-}
-
-class __PianoKeyState extends State<_PianoKey>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _animation;
-
-  @override
-  void initState() {
-    super.initState();
-
-    final animationBegin = 1.0;
-    final animationEnd = 0.95;
-    _controller = AnimationController(
-        duration: const Duration(milliseconds: 2000), vsync: this);
-
-    _animation = TweenSequence(<TweenSequenceItem<double>>[
-      TweenSequenceItem<double>(
-        tween: Tween<double>(begin: animationBegin, end: animationEnd)
-            .chain(CurveTween(curve: Curves.decelerate)),
-        weight: 30.0,
-      ),
-      TweenSequenceItem<double>(
-        tween: Tween<double>(begin: animationEnd, end: animationBegin)
-            .chain(CurveTween(curve: Curves.bounceOut)),
-        weight: 20.0,
-      ),
-      TweenSequenceItem(tween: ConstantTween(animationBegin), weight: 50)
-    ]).animate(_controller);
-
-    _startOrStopAnimation();
-  }
-
-  @override
-  void didUpdateWidget(covariant _PianoKey oldWidget) {
-    if (widget.isAnimated != oldWidget.isAnimated) {
-      _startOrStopAnimation();
-    }
-    super.didUpdateWidget(oldWidget);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-
-    super.dispose();
-  }
-
-  void _startOrStopAnimation() {
-    if (widget.isAnimated) {
-      _controller.repeat(reverse: false);
-    } else {
-      _controller.reset();
-    }
-  }
-
-  @override
   Widget build(BuildContext context) => Container(
-        width: widget.keyWidth,
+        width: keyWidth,
         padding: EdgeInsets.symmetric(
-            horizontal: (widget.keyWidth *
-                    (widget.notePosition.accidental == Accidental.None
+            horizontal: (keyWidth *
+                    (notePosition.accidental == Accidental.None
                         ? 0.02
                         : 0.04))
                 .ceilToDouble()),
-        child: ScaleTransition(
-          scale: _animation,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Semantics(
-                  button: true,
-                  hint: widget.notePosition.name,
-                  child: Material(
-                      borderRadius: widget._borderRadius,
-                      elevation:
-                          widget.notePosition.accidental != Accidental.None
-                              ? 3.0
-                              : 0.0,
-                      shadowColor: Colors.black,
-                      color: widget._color,
-                      child: InkWell(
-                        borderRadius: widget._borderRadius,
-                        highlightColor: Colors.grey,
-                        onTap: widget.onTap == null ? null : () {},
-                        onTapDown: widget.onTap == null
-                            ? null
-                            : (_) {
-                                widget.onTap!();
-                              },
-                      ))),
-              Positioned(
-                left: 0.0,
-                right: 0.0,
-                bottom: widget.keyWidth / 3,
-                child: IgnorePointer(
-                  child: Container(
-                    decoration: (widget.notePosition == NotePosition.middleC)
-                        ? BoxDecoration(
-                            color: Colors.red,
-                            shape: BoxShape.circle,
-                          )
-                        : null,
-                    child: widget.hideNoteName
-                        ? Container(
-                            width: widget.keyWidth / 2,
-                            height: widget.keyWidth / 2,
-                          )
-                        : Padding(
-                            padding: EdgeInsets.all(2),
-                            child: Text(
-                              widget.notePosition.name,
-                              textAlign: TextAlign.center,
-                              textScaleFactor: 1.0,
-                              style: TextStyle(
-                                fontSize: widget.keyWidth / 3.5,
-                                color: widget.notePosition.accidental ==
-                                        Accidental.None
-                                    ? (widget.notePosition ==
-                                            NotePosition.middleC)
-                                        ? Colors.white
-                                        : Colors.black
-                                    : Colors.white,
-                              ),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Semantics(
+                button: true,
+                hint: notePosition.name,
+                child: Material(
+                    borderRadius: _borderRadius,
+                    elevation:
+                        notePosition.accidental != Accidental.None
+                            ? 3.0
+                            : 0.0,
+                    shadowColor: Colors.black,
+                    color: _color,
+                    child: InkWell(
+                      borderRadius: _borderRadius,
+                      highlightColor: Colors.grey,
+                      onTap: onTap == null ? null : () {},
+                      onTapDown: onTap == null
+                          ? null
+                          : (_) {
+                              onTap!();
+                            },
+                    ))),
+            Positioned(
+              left: 0.0,
+              right: 0.0,
+              bottom: keyWidth / 3,
+              child: IgnorePointer(
+                child: Container(
+                  decoration: (notePosition == NotePosition.middleC)
+                      ? BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        )
+                      : null,
+                  child: hideNoteName
+                      ? Container(
+                          width: keyWidth / 2,
+                          height: keyWidth / 2,
+                        )
+                      : Padding(
+                          padding: EdgeInsets.all(2),
+                          child: Text(
+                            notePosition.name,
+                            textAlign: TextAlign.center,
+                            textScaleFactor: 1.0,
+                            style: TextStyle(
+                              fontSize: keyWidth / 3.5,
+                              color: notePosition.accidental ==
+                                      Accidental.None
+                                  ? (notePosition ==
+                                          NotePosition.middleC)
+                                      ? Colors.white
+                                      : Colors.black
+                                  : Colors.white,
                             ),
                           ),
-                  ),
+                        ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       );
 }
