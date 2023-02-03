@@ -93,7 +93,7 @@ class _InteractivePianoState extends State<InteractivePiano> {
   /// We group notes into blocks of contiguous accidentals, since they need to be stacked
   late List<List<NotePosition>> _noteGroups;
 
-  ScrollController? _scrollController;
+  ScrollController? _scrollController = ScrollController();
   double _lastWidth = 0.0, _lastKeyWidth = 0.0;
 
   @override
@@ -112,31 +112,9 @@ class _InteractivePianoState extends State<InteractivePiano> {
   void didUpdateWidget(covariant InteractivePiano oldWidget) {
     if (oldWidget.noteRange != widget.noteRange ||
         oldWidget.useAlternativeAccidentals !=
-            widget.useAlternativeAccidentals) {
-      _updateNotePositions();
-    }
-
-    final noteToScrollTo = widget.noteToScrollTo;
-    if (noteToScrollTo != null && oldWidget.noteToScrollTo != noteToScrollTo) {
-      _scrollController?.animateTo(
-          _computeScrollOffsetForNotePosition(noteToScrollTo),
-          duration: Duration(milliseconds: 300),
-          curve: Curves.easeOut);
-    }
+            widget.useAlternativeAccidentals) {}
 
     super.didUpdateWidget(oldWidget);
-  }
-
-  double _computeScrollOffsetForNotePosition(NotePosition notePosition) {
-    final closestNatural = notePosition.copyWith(accidental: Accidental.None);
-
-    final int index = widget.noteRange.naturalPositions.indexOf(closestNatural);
-
-    if (index == -1 || _lastWidth == 0.0 || _lastKeyWidth == 0.0) {
-      return 0.0;
-    }
-
-    return (index * _lastKeyWidth + _lastKeyWidth / 2 - _lastWidth / 2);
   }
 
   _updateNotePositions() {
@@ -165,82 +143,104 @@ class _InteractivePianoState extends State<InteractivePiano> {
             final numberOfKeys = widget.noteRange.naturalPositions.length;
             _lastKeyWidth = widget.keyWidth ?? (_lastWidth - 2) / numberOfKeys;
 
-            if (_scrollController == null) {
-              double scrollOffset = _computeScrollOffsetForNotePosition(
-                  widget.noteToScrollTo ?? NotePosition.middleC);
-              _scrollController =
-                  ScrollController(initialScrollOffset: scrollOffset);
-            }
+            return Column(
+              children: [
+                Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      IconButton(
+                        splashRadius: 15,
+                        icon: Icon(Icons.arrow_back_ios),
+                        onPressed: () {
+                          _scrollController!.animateTo(
+                              _scrollController!.offset - widget.keyWidth!,
+                              duration: Duration(milliseconds: 500),
+                              curve: Curves.easeOut);
+                        },
+                      ),
+                      IconButton(
+                        splashRadius: 15,
+                        icon: Icon(Icons.arrow_forward_ios),
+                        onPressed: () {
+                          _scrollController!.animateTo(
+                              _scrollController!.offset + widget.keyWidth!,
+                              duration: Duration(milliseconds: 500),
+                              curve: Curves.easeOut);
+                        },
+                      ),
+                    ]),
+                Expanded(
+                  child: ListView.builder(
+                      shrinkWrap: true,
+                      physics: widget.hideScrollbar
+                          ? NeverScrollableScrollPhysics()
+                          : ClampingScrollPhysics(),
+                      itemCount: _noteGroups.length,
+                      controller: _scrollController,
+                      scrollDirection: Axis.horizontal,
+                      itemBuilder: (BuildContext context, int index) {
+                        final naturals = _noteGroups[index]
+                            .where((_) => _.accidental == Accidental.None);
+                        final accidentals = _noteGroups[index]
+                            .where((_) => _.accidental != Accidental.None);
 
-            final showScrollbar = !widget.hideScrollbar &&
-                (numberOfKeys * _lastKeyWidth) > _lastWidth;
-
-            return ListView.builder(
-                    shrinkWrap: true,
-                    physics: widget.hideScrollbar
-                        ? NeverScrollableScrollPhysics()
-                        : ClampingScrollPhysics(),
-                    itemCount: _noteGroups.length,
-                    controller: _scrollController,
-                    scrollDirection: Axis.horizontal,
-                    itemBuilder: (BuildContext context, int index) {
-                      final naturals = _noteGroups[index]
-                          .where((_) => _.accidental == Accidental.None);
-                      final accidentals = _noteGroups[index]
-                          .where((_) => _.accidental != Accidental.None);
-
-                      return Stack(
-                        children: [
-                          Row(
-                            children: naturals
-                                .map((note) => _PianoKey(
-                                    notePosition: note,
-                                    color: widget.naturalColor,
-                                    hideNoteName: widget.hideNoteNames,
-                                    isAnimated: widget
-                                            .animateHighlightedNotes &&
-                                        widget.highlightedNotes.contains(note),
-                                    highlightColor:
-                                        widget.highlightedNotes.contains(note)
-                                            ? widget.highlightColor
-                                            : null,
-                                    keyWidth: _lastKeyWidth,
-                                    onTap: _onNoteTapped(note)))
-                                .toList(),
-                          ),
-                          Positioned(
-                              top: 0.0,
-                              bottom: 0.0,
-                              left:
-                                  _lastKeyWidth / 2.0 + (_lastKeyWidth * 0.02),
-                              child: FractionallySizedBox(
-                                  alignment: Alignment.topCenter,
-                                  heightFactor: 0.55,
-                                  child: Row(
-                                    children: accidentals
-                                        .map(
-                                          (note) => _PianoKey(
-                                            notePosition: note,
-                                            color: widget.accidentalColor,
-                                            hideNoteName: widget.hideNoteNames,
-                                            isAnimated: widget
-                                                    .animateHighlightedNotes &&
-                                                widget.highlightedNotes
-                                                    .contains(note),
-                                            highlightColor: widget
-                                                    .highlightedNotes
-                                                    .contains(note)
-                                                ? widget.highlightColor
-                                                : null,
-                                            keyWidth: _lastKeyWidth,
-                                            onTap: _onNoteTapped(note),
-                                          ),
-                                        )
-                                        .toList(),
-                                  ))),
-                        ],
-                      );
-                    });
+                        return Stack(
+                          children: [
+                            Row(
+                              children: naturals
+                                  .map((note) => _PianoKey(
+                                      notePosition: note,
+                                      color: widget.naturalColor,
+                                      hideNoteName: widget.hideNoteNames,
+                                      isAnimated:
+                                          widget.animateHighlightedNotes &&
+                                              widget.highlightedNotes
+                                                  .contains(note),
+                                      highlightColor:
+                                          widget.highlightedNotes.contains(note)
+                                              ? widget.highlightColor
+                                              : null,
+                                      keyWidth: _lastKeyWidth,
+                                      onTap: _onNoteTapped(note)))
+                                  .toList(),
+                            ),
+                            Positioned(
+                                top: 0.0,
+                                bottom: 0.0,
+                                left: _lastKeyWidth / 2.0 +
+                                    (_lastKeyWidth * 0.02),
+                                child: FractionallySizedBox(
+                                    alignment: Alignment.topCenter,
+                                    heightFactor: 0.55,
+                                    child: Row(
+                                      children: accidentals
+                                          .map(
+                                            (note) => _PianoKey(
+                                              notePosition: note,
+                                              color: widget.accidentalColor,
+                                              hideNoteName:
+                                                  widget.hideNoteNames,
+                                              isAnimated: widget
+                                                      .animateHighlightedNotes &&
+                                                  widget.highlightedNotes
+                                                      .contains(note),
+                                              highlightColor: widget
+                                                      .highlightedNotes
+                                                      .contains(note)
+                                                  ? widget.highlightColor
+                                                  : null,
+                                              keyWidth: _lastKeyWidth,
+                                              onTap: _onNoteTapped(note),
+                                            ),
+                                          )
+                                          .toList(),
+                                    ))),
+                          ],
+                        );
+                      }),
+                ),
+              ],
+            );
           }),
         ),
       );
@@ -321,7 +321,7 @@ class _PianoKeyState extends State<_PianoKey> {
                     boxShape:
                         NeumorphicBoxShape.roundRect(widget._borderRadius),
                   ),
-                  onPressed:  widget.onTap!),
+                  onPressed: widget.onTap!),
             )),
       );
 }
