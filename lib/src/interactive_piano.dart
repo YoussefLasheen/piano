@@ -4,6 +4,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
 import 'package:collection/collection.dart';
+import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 
 import 'note_position.dart';
 import 'note_range.dart';
@@ -157,8 +158,6 @@ class _InteractivePianoState extends State<InteractivePiano> {
 
   @override
   Widget build(BuildContext context) => Container(
-        color: Colors.black,
-        padding: EdgeInsets.only(top: 2, bottom: 10),
         child: Center(
           child: LayoutBuilder(builder: (context, constraints) {
             _lastWidth = constraints.maxWidth;
@@ -176,9 +175,7 @@ class _InteractivePianoState extends State<InteractivePiano> {
             final showScrollbar = !widget.hideScrollbar &&
                 (numberOfKeys * _lastKeyWidth) > _lastWidth;
 
-            return _MaybeScrollbar(
-                scrollController: showScrollbar ? _scrollController : null,
-                child: ListView.builder(
+            return ListView.builder(
                     shrinkWrap: true,
                     physics: widget.hideScrollbar
                         ? NeverScrollableScrollPhysics()
@@ -243,7 +240,7 @@ class _InteractivePianoState extends State<InteractivePiano> {
                                   ))),
                         ],
                       );
-                    }));
+                    });
           }),
         ),
       );
@@ -285,51 +282,26 @@ class _PianoKey extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         width: keyWidth,
         padding: EdgeInsets.symmetric(
+            vertical: 10,
             horizontal: (keyWidth *
                     (notePosition.accidental == Accidental.None ? 0.02 : 0.04))
                 .ceilToDouble()),
-        child: Semantics(
-            button: true,
-            hint: notePosition.name,
-            child: Material(
-                borderRadius: _borderRadius,
-                elevation:
-                    notePosition.accidental != Accidental.None ? 3.0 : 0.0,
-                shadowColor: Colors.black,
-                color: _color,
-                child: MouseRegion(
-                  onEnter: (event) {
-                    if (event.down) {
-                      onTap!();
-                    }
-                  },
-                  child: InkWell(
-                      borderRadius: _borderRadius,
-                      highlightColor: Colors.grey,
-                      onTapDown: (_) => onTap!()),
-                ))),
+        child: MouseRegion(
+            onEnter: (event) {
+              if (event.down) {
+                onTap!();
+              }
+            },
+            child: SizedBox(
+              height: double.infinity,
+              child: NeumorphicButton(
+                  drawSurfaceAboveChild: false,
+                  style: NeumorphicStyle(
+                    border: NeumorphicBorder(),
+                    color: _color,
+                    boxShape: NeumorphicBoxShape.roundRect(_borderRadius),
+                  ),
+                  onPressed: () => onTap!()),
+            )),
       );
-}
-
-class _MaybeScrollbar extends StatelessWidget {
-  final ScrollController? scrollController;
-  final Widget child;
-
-  const _MaybeScrollbar(
-      {Key? key, required this.scrollController, required this.child})
-      : super(key: key);
-
-  @override
-  Widget build(BuildContext context) => (scrollController == null)
-      ? Container(child: child)
-      : RawScrollbar(
-          thumbColor: Colors.grey.shade600,
-          radius: Radius.circular(16),
-          thickness: 16,
-          isAlwaysShown: true,
-          controller: scrollController,
-          child: Container(
-              color: Colors.black,
-              padding: EdgeInsets.only(bottom: 24),
-              child: child));
 }
