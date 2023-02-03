@@ -286,43 +286,84 @@ class _PianoKeyState extends State<_PianoKey> {
   bool? isPressed;
 
   @override
-  Widget build(BuildContext context) => Container(
-        width: widget.keyWidth,
-        padding: EdgeInsets.symmetric(
-            vertical: 10,
-            horizontal: (widget.keyWidth *
-                    (widget.notePosition.accidental == Accidental.None
-                        ? 0.02
-                        : 0.04))
-                .ceilToDouble()),
-        child: MouseRegion(
-            onEnter: (event) {
-              if (event.down) {
-                setState(() {
-                  isPressed = true;
-                });
-                Future.delayed(Duration(milliseconds: 150), () {
-                  setState(() {
-                    isPressed = null;
-                  });
-                });
+  Widget build(BuildContext context) => Stack(
+        children: [
+          Container(
+            width: widget.keyWidth,
+            padding: EdgeInsets.symmetric(
+                vertical: 10,
+                horizontal: (widget.keyWidth *
+                        (widget.notePosition.accidental == Accidental.None
+                            ? 0.02
+                            : 0.04))
+                    .ceilToDouble()),
+            child: MouseRegion(
+                onEnter: (event) {
+                  if (event.down) {
+                    setState(() {
+                      isPressed = true;
+                    });
+                    Future.delayed(Duration(milliseconds: 150), () {
+                      setState(() {
+                        isPressed = null;
+                      });
+                    });
 
-                widget.onTap!();
-              }
-            },
-            child: SizedBox(
-              height: double.infinity,
-              child: NeumorphicButton(
-                  pressed: isPressed,
-                  style: NeumorphicStyle(
-                    shape: NeumorphicShape.concave,
-                    shadowLightColor: Colors.transparent,
-                    border: NeumorphicBorder(),
-                    color: widget._color,
-                    boxShape:
-                        NeumorphicBoxShape.roundRect(widget._borderRadius),
-                  ),
-                  onPressed: widget.onTap!),
-            )),
+                    widget.onTap!();
+                  }
+                },
+                child: SizedBox(
+                  height: double.infinity,
+                  child: NeumorphicButton(
+                      pressed: isPressed,
+                      style: NeumorphicStyle(
+                        shape: NeumorphicShape.concave,
+                        shadowLightColor: Colors.transparent,
+                        border: NeumorphicBorder(),
+                        color: widget._color,
+                        boxShape:
+                            NeumorphicBoxShape.roundRect(widget._borderRadius),
+                      ),
+                      onPressed: widget.onTap!),
+                )),
+          ),
+          Positioned(
+            left: 0.0,
+            right: 0.0,
+            bottom: widget.keyWidth / 3,
+            child: IgnorePointer(
+              child: Container(
+                decoration: (widget.notePosition == NotePosition.middleC)
+                    ? BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      )
+                    : null,
+                child: widget.hideNoteName
+                    ? Container(
+                        width: widget.keyWidth / 2,
+                        height: widget.keyWidth / 2,
+                      )
+                    : Padding(
+                        padding: EdgeInsets.all(2),
+                        child: Text(
+                          widget.notePosition.name,
+                          textAlign: TextAlign.center,
+                          textScaleFactor: 1.0,
+                          style: TextStyle(
+                            fontSize: widget.keyWidth / 3.5,
+                            color: widget.notePosition.accidental ==
+                                    Accidental.None
+                                ? (widget.notePosition == NotePosition.middleC)
+                                    ? Colors.white
+                                    : Colors.black
+                                : Colors.white,
+                          ),
+                        ),
+                      ),
+              ),
+            ),
+          ),
+        ],
       );
 }
