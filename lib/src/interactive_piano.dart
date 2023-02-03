@@ -314,8 +314,9 @@ class _PianoKeyState extends State<_PianoKey> {
               height: double.infinity,
               child: NeumorphicButton(
                   pressed: isPressed,
-                  drawSurfaceAboveChild: false,
                   style: NeumorphicStyle(
+                    shape: NeumorphicShape.concave,
+                    shadowLightColor: Colors.transparent,
                     border: NeumorphicBorder(),
                     color: widget._color,
                     boxShape:
