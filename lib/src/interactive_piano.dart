@@ -251,7 +251,7 @@ class _InteractivePianoState extends State<InteractivePiano> {
           : () => widget.onNotePositionTapped!(notePosition);
 }
 
-class _PianoKey extends StatelessWidget {
+class _PianoKey extends StatefulWidget {
   final NotePosition notePosition;
   final double keyWidth;
   final BorderRadius _borderRadius;
@@ -279,29 +279,49 @@ class _PianoKey extends StatelessWidget {
         super(key: key);
 
   @override
+  State<_PianoKey> createState() => _PianoKeyState();
+}
+
+class _PianoKeyState extends State<_PianoKey> {
+  bool? isPressed;
+
+  @override
   Widget build(BuildContext context) => Container(
-        width: keyWidth,
+        width: widget.keyWidth,
         padding: EdgeInsets.symmetric(
             vertical: 10,
-            horizontal: (keyWidth *
-                    (notePosition.accidental == Accidental.None ? 0.02 : 0.04))
+            horizontal: (widget.keyWidth *
+                    (widget.notePosition.accidental == Accidental.None
+                        ? 0.02
+                        : 0.04))
                 .ceilToDouble()),
         child: MouseRegion(
             onEnter: (event) {
               if (event.down) {
-                onTap!();
+                setState(() {
+                  isPressed = true;
+                });
+                Future.delayed(Duration(milliseconds: 150), () {
+                  setState(() {
+                    isPressed = null;
+                  });
+                });
+
+                widget.onTap!();
               }
             },
             child: SizedBox(
               height: double.infinity,
               child: NeumorphicButton(
+                  pressed: isPressed,
                   drawSurfaceAboveChild: false,
                   style: NeumorphicStyle(
                     border: NeumorphicBorder(),
-                    color: _color,
-                    boxShape: NeumorphicBoxShape.roundRect(_borderRadius),
+                    color: widget._color,
+                    boxShape:
+                        NeumorphicBoxShape.roundRect(widget._borderRadius),
                   ),
-                  onPressed: () => onTap!()),
+                  onPressed:  widget.onTap!),
             )),
       );
 }
