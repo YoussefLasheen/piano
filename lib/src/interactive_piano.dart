@@ -290,70 +290,27 @@ class _PianoKey extends StatelessWidget {
                         ? 0.02
                         : 0.04))
                 .ceilToDouble()),
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Semantics(
-                button: true,
-                hint: notePosition.name,
-                child: Material(
-                    borderRadius: _borderRadius,
-                    elevation:
-                        notePosition.accidental != Accidental.None
-                            ? 3.0
-                            : 0.0,
-                    shadowColor: Colors.black,
-                    color: _color,
-                    child: InkWell(
-                      borderRadius: _borderRadius,
-                      highlightColor: Colors.grey,
-                      onTap: onTap == null ? null : () {},
-                      onTapDown: onTap == null
-                          ? null
-                          : (_) {
-                              onTap!();
-                            },
-                    ))),
-            Positioned(
-              left: 0.0,
-              right: 0.0,
-              bottom: keyWidth / 3,
-              child: IgnorePointer(
-                child: Container(
-                  decoration: (notePosition == NotePosition.middleC)
-                      ? BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
-                        )
-                      : null,
-                  child: hideNoteName
-                      ? Container(
-                          width: keyWidth / 2,
-                          height: keyWidth / 2,
-                        )
-                      : Padding(
-                          padding: EdgeInsets.all(2),
-                          child: Text(
-                            notePosition.name,
-                            textAlign: TextAlign.center,
-                            textScaleFactor: 1.0,
-                            style: TextStyle(
-                              fontSize: keyWidth / 3.5,
-                              color: notePosition.accidental ==
-                                      Accidental.None
-                                  ? (notePosition ==
-                                          NotePosition.middleC)
-                                      ? Colors.white
-                                      : Colors.black
-                                  : Colors.white,
-                            ),
-                          ),
-                        ),
-                ),
-              ),
-            ),
-          ],
-        ),
+        child: Semantics(
+            button: true,
+            hint: notePosition.name,
+            child: Material(
+                borderRadius: _borderRadius,
+                elevation:
+                    notePosition.accidental != Accidental.None
+                        ? 3.0
+                        : 0.0,
+                shadowColor: Colors.black,
+                color: _color,
+                child: InkWell(
+                  borderRadius: _borderRadius,
+                  highlightColor: Colors.grey,
+                  onTap: onTap == null ? null : () {},
+                  onTapDown: onTap == null
+                      ? null
+                      : (_) {
+                          onTap!();
+                        },
+                ))),
       );
 }
 
