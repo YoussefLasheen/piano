@@ -286,9 +286,7 @@ class _PianoKey extends StatelessWidget {
         width: keyWidth,
         padding: EdgeInsets.symmetric(
             horizontal: (keyWidth *
-                    (notePosition.accidental == Accidental.None
-                        ? 0.02
-                        : 0.04))
+                    (notePosition.accidental == Accidental.None ? 0.02 : 0.04))
                 .ceilToDouble()),
         child: Semantics(
             button: true,
@@ -296,20 +294,19 @@ class _PianoKey extends StatelessWidget {
             child: Material(
                 borderRadius: _borderRadius,
                 elevation:
-                    notePosition.accidental != Accidental.None
-                        ? 3.0
-                        : 0.0,
+                    notePosition.accidental != Accidental.None ? 3.0 : 0.0,
                 shadowColor: Colors.black,
                 color: _color,
-                child: InkWell(
-                  borderRadius: _borderRadius,
-                  highlightColor: Colors.grey,
-                  onTap: onTap == null ? null : () {},
-                  onTapDown: onTap == null
-                      ? null
-                      : (_) {
-                          onTap!();
-                        },
+                child: MouseRegion(
+                  onEnter: (event) {
+                    if (event.down) {
+                      onTap!();
+                    }
+                  },
+                  child: InkWell(
+                      borderRadius: _borderRadius,
+                      highlightColor: Colors.grey,
+                      onTapDown: (_) => onTap!()),
                 ))),
       );
 }
