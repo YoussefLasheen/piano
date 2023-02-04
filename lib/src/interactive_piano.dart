@@ -38,6 +38,9 @@ class InteractivePiano extends StatefulWidget {
   /// Whether to hide note names on keys.
   final bool hideNoteNames;
 
+  /// Whether to hide the keyboard key.
+  final bool hideNoteKeyboardkey;
+
   /// Whether to hide the scroll bar, that appears below the keys.
   final bool hideScrollbar;
 
@@ -80,6 +83,7 @@ class InteractivePiano extends StatefulWidget {
       this.animateHighlightedNotes = false,
       this.useAlternativeAccidentals = false,
       this.hideNoteNames = false,
+      this.hideNoteKeyboardkey = false,
       this.hideScrollbar = false,
       this.onNotePositionTapped,
       this.noteToScrollTo,
@@ -223,6 +227,7 @@ class _InteractivePianoState extends State<InteractivePiano> {
                                         notePosition: note,
                                         color: widget.naturalColor,
                                         hideNoteName: widget.hideNoteNames,
+                                        hideNoteKeyboardkey: widget.hideNoteKeyboardkey,
                                         isAnimated:
                                             widget.animateHighlightedNotes &&
                                                 widget.highlightedNotes
@@ -252,6 +257,8 @@ class _InteractivePianoState extends State<InteractivePiano> {
                                                 color: widget.accidentalColor,
                                                 hideNoteName:
                                                     widget.hideNoteNames,
+                                                hideNoteKeyboardkey:
+                                                    widget.hideNoteKeyboardkey,
                                                 isAnimated: widget
                                                         .animateHighlightedNotes &&
                                                     widget.highlightedNotes
@@ -289,6 +296,7 @@ class _PianoKey extends StatefulWidget {
   final double keyWidth;
   final BorderRadius _borderRadius;
   final bool hideNoteName;
+  final bool hideNoteKeyboardkey;
   final VoidCallback? onTap;
   final bool isAnimated;
   final bool? isPressed;
@@ -300,6 +308,7 @@ class _PianoKey extends StatefulWidget {
     required this.notePosition,
     required this.keyWidth,
     required this.hideNoteName,
+    required this.hideNoteKeyboardkey,
     required this.onTap,
     required this.isAnimated,
     required Color color,
@@ -367,54 +376,39 @@ class _PianoKeyState extends State<_PianoKey> {
             right: 0.0,
             bottom: widget.keyWidth / 3,
             child: IgnorePointer(
-              child: Container(
-                decoration: (widget.notePosition == NotePosition.middleC)
-                    ? BoxDecoration(
-                        color: Colors.red,
-                        shape: BoxShape.circle,
-                      )
-                    : null,
-                child: widget.hideNoteName
-                    ? Container(
-                        width: widget.keyWidth / 2,
-                        height: widget.keyWidth / 2,
-                      )
-                    : Padding(
-                        padding: EdgeInsets.all(2),
-                        child: Column(
-                          children: [
-                            Text(
-                              noteToQuerty[widget.notePosition.name]!,
-                              textAlign: TextAlign.center,
-                              textScaleFactor: 1.0,
-                              style: TextStyle(
-                                fontSize: widget.keyWidth / 3.5,
-                                color: widget.notePosition.accidental ==
-                                        Accidental.None
-                                    ? (widget.notePosition == NotePosition.middleC)
-                                        ? Colors.white
-                                        : Colors.black
-                                    : Colors.white,
-                              ),
-                            ),
-                            Text(
-                              widget.notePosition.name,
-                              textAlign: TextAlign.center,
-                              textScaleFactor: 1.0,
-                              style: TextStyle(
-                                fontSize: widget.keyWidth / 3.5,
-                                color: widget.notePosition.accidental ==
-                                        Accidental.None
-                                    ? (widget.notePosition == NotePosition.middleC)
-                                        ? Colors.white
-                                        : Colors.black
-                                    : Colors.white,
-                              ),
-                            ),
-                          ],
+              child: Padding(
+                  padding: EdgeInsets.all(2),
+                  child: Column(
+                    children: [
+                      if(!widget.hideNoteKeyboardkey)
+                      Text(
+                        noteToQuerty[widget.notePosition.name]!,
+                        textAlign: TextAlign.center,
+                        textScaleFactor: 1.0,
+                        style: TextStyle(
+                          fontSize: widget.keyWidth / 3.5,
+                          color: widget.notePosition.accidental ==
+                                  Accidental.None
+                              ?  Colors.black
+                              : Colors.white,
                         ),
                       ),
-              ),
+                      if(!widget.hideNoteName)
+                      Text(
+                        widget.notePosition.name,
+                        textAlign: TextAlign.center,
+                        textScaleFactor: 1.0,
+                        style: TextStyle(
+                          fontSize: widget.keyWidth / 3.5,
+                          color: widget.notePosition.accidental ==
+                                  Accidental.None
+                              ? Colors.black
+                              : Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
             ),
           ),
         ],
