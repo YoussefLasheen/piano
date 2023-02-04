@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 import 'package:collection/collection.dart';
@@ -133,17 +134,34 @@ class _InteractivePianoState extends State<InteractivePiano> {
             notePositions[index - 1].accidental == Accidental.None)
         .toList();
   }
-
+  Map<String, bool> noteStatus = Map<String, bool>.fromIterable(noteToQuerty.keys,
+    key: (item) => item.toString(),
+    value: (item) => false);
   @override
   Widget build(BuildContext context) => Container(
-        child: KeyboardListener(
+        child: RawKeyboardListener(
           autofocus: true,
           focusNode: FocusNode(),
-          onKeyEvent: (value){
-            String? position = noteToQuerty.keys.firstWhereOrNull((k) => noteToQuerty[k] == value.character, );;
-            if(position != null){
-              widget.onNotePositionTapped!(position);
-            };
+          onKey: (value) {
+            String? position = noteToQuerty.keys.firstWhereOrNull(
+                (k) => noteToQuerty[k] == value.data.keyLabel);
+
+            if (position != null) {
+              if (value is RawKeyDownEvent) {
+                if (noteStatus[position]!) {
+                  return;
+                }
+                widget.onNotePositionTapped!(position!);
+                setState(() {
+                  noteStatus[position] = true;
+                });
+              } else if (value is RawKeyUpEvent) {
+                setState(() {
+                  noteStatus[position!] = false;
+                });
+              }
+            }
+            ;
           },
           child: Center(
             child: LayoutBuilder(builder: (context, constraints) {
@@ -198,6 +216,7 @@ class _InteractivePianoState extends State<InteractivePiano> {
                               Row(
                                 children: naturals
                                     .map((note) => _PianoKey(
+                                      isPressed: noteStatus[note.name]!?true:null,
                                         notePosition: note,
                                         color: widget.naturalColor,
                                         hideNoteName: widget.hideNoteNames,
@@ -225,6 +244,7 @@ class _InteractivePianoState extends State<InteractivePiano> {
                                         children: accidentals
                                             .map(
                                               (note) => _PianoKey(
+                                                isPressed: noteStatus[note.name]!?true:null,
                                                 notePosition: note,
                                                 color: widget.accidentalColor,
                                                 hideNoteName:
@@ -268,6 +288,7 @@ class _PianoKey extends StatefulWidget {
   final bool hideNoteName;
   final VoidCallback? onTap;
   final bool isAnimated;
+  final bool? isPressed;
 
   final Color _color;
 
@@ -279,7 +300,7 @@ class _PianoKey extends StatefulWidget {
     required this.onTap,
     required this.isAnimated,
     required Color color,
-    Color? highlightColor,
+    Color? highlightColor, required this.isPressed,
   })  : _borderRadius = BorderRadius.only(
             bottomLeft: Radius.circular(keyWidth * 0.2),
             bottomRight: Radius.circular(keyWidth * 0.2)),
@@ -295,20 +316,9 @@ class _PianoKey extends StatefulWidget {
 class _PianoKeyState extends State<_PianoKey> {
   bool? isPressed;
 
-  void simulatePress() {
-    setState(() {
-      isPressed = true;
-    });
-    Future.delayed(Duration(milliseconds: 150), () {
-      setState(() {
-        isPressed = null;
-      });
-    });
-
-    widget.onTap!();
-  }
   @override
-  Widget build(BuildContext context) => Stack(
+  Widget build(BuildContext context) {;
+    return Stack(
         children: [
           Container(
             width: widget.keyWidth,
@@ -337,7 +347,7 @@ class _PianoKeyState extends State<_PianoKey> {
                 child: SizedBox(
                   height: double.infinity,
                   child: NeumorphicButton(
-                      pressed: isPressed,
+                      pressed: (isPressed !=null || widget.isPressed != null)? true : null,
                       style: NeumorphicStyle(
                         shape: NeumorphicShape.concave,
                         shadowLightColor: Colors.transparent,
@@ -406,6 +416,7 @@ class _PianoKeyState extends State<_PianoKey> {
           ),
         ],
       );
+  }
 }
 Map<String, String> noteToQuerty = {
     'C2': '1',
@@ -439,7 +450,6 @@ Map<String, String> noteToQuerty = {
     'C6': 'm',
     'C♯2': '!',
     'D♯2': '@',
-    'E♯2': '#',
     'F♯2': 'Q',
     'G♯2': 'W',
     'A♯2': 'E',
