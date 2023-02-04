@@ -172,30 +172,33 @@ class _InteractivePianoState extends State<InteractivePiano> {
         
               return Column(
                 children: [
-                  Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        IconButton(
-                          splashRadius: 15,
-                          icon: Icon(Icons.arrow_back_ios),
-                          onPressed: () {
-                            _scrollController!.animateTo(
-                                _scrollController!.offset - widget.keyWidth!,
-                                duration: Duration(milliseconds: 500),
-                                curve: Curves.easeOut);
-                          },
-                        ),
-                        IconButton(
-                          splashRadius: 15,
-                          icon: Icon(Icons.arrow_forward_ios),
-                          onPressed: () {
-                            _scrollController!.animateTo(
-                                _scrollController!.offset + widget.keyWidth!,
-                                duration: Duration(milliseconds: 500),
-                                curve: Curves.easeOut);
-                          },
-                        ),
-                      ]),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8.0, right: 8.0, top: 10),
+                    child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          IconButton(
+                            splashRadius: 15,
+                            icon: Icon(Icons.arrow_back_ios),
+                            onPressed: () {
+                              _scrollController!.animateTo(
+                                  _scrollController!.offset - widget.keyWidth!,
+                                  duration: Duration(milliseconds: 500),
+                                  curve: Curves.easeOut);
+                            },
+                          ),
+                          IconButton(
+                            splashRadius: 15,
+                            icon: Icon(Icons.arrow_forward_ios),
+                            onPressed: () {
+                              _scrollController!.animateTo(
+                                  _scrollController!.offset + widget.keyWidth!,
+                                  duration: Duration(milliseconds: 500),
+                                  curve: Curves.easeOut);
+                            },
+                          ),
+                        ]),
+                  ),
                   Expanded(
                     child: ListView.builder(
                         shrinkWrap: true,
