@@ -9,7 +9,7 @@ import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'note_position.dart';
 import 'note_range.dart';
 
-typedef OnNotePositionTapped = void Function(NotePosition position);
+typedef OnNotePositionTapped = void Function(String position);
 
 /// Renders a scrollable interactive piano.
 class InteractivePiano extends StatefulWidget {
@@ -136,119 +136,129 @@ class _InteractivePianoState extends State<InteractivePiano> {
 
   @override
   Widget build(BuildContext context) => Container(
-        child: Center(
-          child: LayoutBuilder(builder: (context, constraints) {
-            _lastWidth = constraints.maxWidth;
-
-            final numberOfKeys = widget.noteRange.naturalPositions.length;
-            _lastKeyWidth = widget.keyWidth ?? (_lastWidth - 2) / numberOfKeys;
-
-            return Column(
-              children: [
-                Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      IconButton(
-                        splashRadius: 15,
-                        icon: Icon(Icons.arrow_back_ios),
-                        onPressed: () {
-                          _scrollController!.animateTo(
-                              _scrollController!.offset - widget.keyWidth!,
-                              duration: Duration(milliseconds: 500),
-                              curve: Curves.easeOut);
-                        },
-                      ),
-                      IconButton(
-                        splashRadius: 15,
-                        icon: Icon(Icons.arrow_forward_ios),
-                        onPressed: () {
-                          _scrollController!.animateTo(
-                              _scrollController!.offset + widget.keyWidth!,
-                              duration: Duration(milliseconds: 500),
-                              curve: Curves.easeOut);
-                        },
-                      ),
-                    ]),
-                Expanded(
-                  child: ListView.builder(
-                      shrinkWrap: true,
-                      physics: widget.hideScrollbar
-                          ? NeverScrollableScrollPhysics()
-                          : ClampingScrollPhysics(),
-                      itemCount: _noteGroups.length,
-                      controller: _scrollController,
-                      scrollDirection: Axis.horizontal,
-                      itemBuilder: (BuildContext context, int index) {
-                        final naturals = _noteGroups[index]
-                            .where((_) => _.accidental == Accidental.None);
-                        final accidentals = _noteGroups[index]
-                            .where((_) => _.accidental != Accidental.None);
-
-                        return Stack(
-                          children: [
-                            Row(
-                              children: naturals
-                                  .map((note) => _PianoKey(
-                                      notePosition: note,
-                                      color: widget.naturalColor,
-                                      hideNoteName: widget.hideNoteNames,
-                                      isAnimated:
-                                          widget.animateHighlightedNotes &&
-                                              widget.highlightedNotes
-                                                  .contains(note),
-                                      highlightColor:
-                                          widget.highlightedNotes.contains(note)
-                                              ? widget.highlightColor
-                                              : null,
-                                      keyWidth: _lastKeyWidth,
-                                      onTap: _onNoteTapped(note)))
-                                  .toList(),
-                            ),
-                            Positioned(
-                                top: 0.0,
-                                bottom: 0.0,
-                                left: _lastKeyWidth / 2.0 +
-                                    (_lastKeyWidth * 0.02),
-                                child: FractionallySizedBox(
-                                    alignment: Alignment.topCenter,
-                                    heightFactor: 0.55,
-                                    child: Row(
-                                      children: accidentals
-                                          .map(
-                                            (note) => _PianoKey(
-                                              notePosition: note,
-                                              color: widget.accidentalColor,
-                                              hideNoteName:
-                                                  widget.hideNoteNames,
-                                              isAnimated: widget
-                                                      .animateHighlightedNotes &&
-                                                  widget.highlightedNotes
-                                                      .contains(note),
-                                              highlightColor: widget
-                                                      .highlightedNotes
-                                                      .contains(note)
-                                                  ? widget.highlightColor
-                                                  : null,
-                                              keyWidth: _lastKeyWidth,
-                                              onTap: _onNoteTapped(note),
-                                            ),
-                                          )
-                                          .toList(),
-                                    ))),
-                          ],
-                        );
-                      }),
-                ),
-              ],
-            );
-          }),
+        child: KeyboardListener(
+          autofocus: true,
+          focusNode: FocusNode(),
+          onKeyEvent: (value){
+            String? position = noteToQuerty.keys.firstWhereOrNull((k) => noteToQuerty[k] == value.character, );;
+            if(position != null){
+              widget.onNotePositionTapped!(position);
+            };
+          },
+          child: Center(
+            child: LayoutBuilder(builder: (context, constraints) {
+              _lastWidth = constraints.maxWidth;
+        
+              final numberOfKeys = widget.noteRange.naturalPositions.length;
+              _lastKeyWidth = widget.keyWidth ?? (_lastWidth - 2) / numberOfKeys;
+        
+              return Column(
+                children: [
+                  Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                          splashRadius: 15,
+                          icon: Icon(Icons.arrow_back_ios),
+                          onPressed: () {
+                            _scrollController!.animateTo(
+                                _scrollController!.offset - widget.keyWidth!,
+                                duration: Duration(milliseconds: 500),
+                                curve: Curves.easeOut);
+                          },
+                        ),
+                        IconButton(
+                          splashRadius: 15,
+                          icon: Icon(Icons.arrow_forward_ios),
+                          onPressed: () {
+                            _scrollController!.animateTo(
+                                _scrollController!.offset + widget.keyWidth!,
+                                duration: Duration(milliseconds: 500),
+                                curve: Curves.easeOut);
+                          },
+                        ),
+                      ]),
+                  Expanded(
+                    child: ListView.builder(
+                        shrinkWrap: true,
+                        physics: widget.hideScrollbar
+                            ? NeverScrollableScrollPhysics()
+                            : ClampingScrollPhysics(),
+                        itemCount: _noteGroups.length,
+                        controller: _scrollController,
+                        scrollDirection: Axis.horizontal,
+                        itemBuilder: (BuildContext context, int index) {
+                          final naturals = _noteGroups[index]
+                              .where((_) => _.accidental == Accidental.None);
+                          final accidentals = _noteGroups[index]
+                              .where((_) => _.accidental != Accidental.None);
+        
+                          return Stack(
+                            children: [
+                              Row(
+                                children: naturals
+                                    .map((note) => _PianoKey(
+                                        notePosition: note,
+                                        color: widget.naturalColor,
+                                        hideNoteName: widget.hideNoteNames,
+                                        isAnimated:
+                                            widget.animateHighlightedNotes &&
+                                                widget.highlightedNotes
+                                                    .contains(note),
+                                        highlightColor:
+                                            widget.highlightedNotes.contains(note)
+                                                ? widget.highlightColor
+                                                : null,
+                                        keyWidth: _lastKeyWidth,
+                                        onTap: _onNoteTapped(note)))
+                                    .toList(),
+                              ),
+                              Positioned(
+                                  top: 0.0,
+                                  bottom: 0.0,
+                                  left: _lastKeyWidth / 2.0 +
+                                      (_lastKeyWidth * 0.02),
+                                  child: FractionallySizedBox(
+                                      alignment: Alignment.topCenter,
+                                      heightFactor: 0.55,
+                                      child: Row(
+                                        children: accidentals
+                                            .map(
+                                              (note) => _PianoKey(
+                                                notePosition: note,
+                                                color: widget.accidentalColor,
+                                                hideNoteName:
+                                                    widget.hideNoteNames,
+                                                isAnimated: widget
+                                                        .animateHighlightedNotes &&
+                                                    widget.highlightedNotes
+                                                        .contains(note),
+                                                highlightColor: widget
+                                                        .highlightedNotes
+                                                        .contains(note)
+                                                    ? widget.highlightColor
+                                                    : null,
+                                                keyWidth: _lastKeyWidth,
+                                                onTap: _onNoteTapped(note),
+                                              ),
+                                            )
+                                            .toList(),
+                                      ))),
+                            ],
+                          );
+                        }),
+                  ),
+                ],
+              );
+            }),
+          ),
         ),
       );
 
   void Function()? _onNoteTapped(NotePosition notePosition) =>
       widget.onNotePositionTapped == null
           ? null
-          : () => widget.onNotePositionTapped!(notePosition);
+          : () => widget.onNotePositionTapped!(notePosition.name);
 }
 
 class _PianoKey extends StatefulWidget {
@@ -285,6 +295,18 @@ class _PianoKey extends StatefulWidget {
 class _PianoKeyState extends State<_PianoKey> {
   bool? isPressed;
 
+  void simulatePress() {
+    setState(() {
+      isPressed = true;
+    });
+    Future.delayed(Duration(milliseconds: 150), () {
+      setState(() {
+        isPressed = null;
+      });
+    });
+
+    widget.onTap!();
+  }
   @override
   Widget build(BuildContext context) => Stack(
         children: [
@@ -308,7 +330,7 @@ class _PianoKeyState extends State<_PianoKey> {
                         isPressed = null;
                       });
                     });
-
+  
                     widget.onTap!();
                   }
                 },
@@ -346,19 +368,37 @@ class _PianoKeyState extends State<_PianoKey> {
                       )
                     : Padding(
                         padding: EdgeInsets.all(2),
-                        child: Text(
-                          widget.notePosition.name,
-                          textAlign: TextAlign.center,
-                          textScaleFactor: 1.0,
-                          style: TextStyle(
-                            fontSize: widget.keyWidth / 3.5,
-                            color: widget.notePosition.accidental ==
-                                    Accidental.None
-                                ? (widget.notePosition == NotePosition.middleC)
-                                    ? Colors.white
-                                    : Colors.black
-                                : Colors.white,
-                          ),
+                        child: Column(
+                          children: [
+                            Text(
+                              noteToQuerty[widget.notePosition.name]!,
+                              textAlign: TextAlign.center,
+                              textScaleFactor: 1.0,
+                              style: TextStyle(
+                                fontSize: widget.keyWidth / 3.5,
+                                color: widget.notePosition.accidental ==
+                                        Accidental.None
+                                    ? (widget.notePosition == NotePosition.middleC)
+                                        ? Colors.white
+                                        : Colors.black
+                                    : Colors.white,
+                              ),
+                            ),
+                            Text(
+                              widget.notePosition.name,
+                              textAlign: TextAlign.center,
+                              textScaleFactor: 1.0,
+                              style: TextStyle(
+                                fontSize: widget.keyWidth / 3.5,
+                                color: widget.notePosition.accidental ==
+                                        Accidental.None
+                                    ? (widget.notePosition == NotePosition.middleC)
+                                        ? Colors.white
+                                        : Colors.black
+                                    : Colors.white,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
               ),
@@ -367,3 +407,55 @@ class _PianoKeyState extends State<_PianoKey> {
         ],
       );
 }
+Map<String, String> noteToQuerty = {
+    'C2': '1',
+    'D2': '2',
+    'E2': '3',
+    'F2': 'q',
+    'G2': 'w',
+    'A2': 'e',
+    'B2': 'r',
+    'C3': 't',
+    'D3': 'y',
+    'E3': 'u',
+    'F3': 'i',
+    'G3': 'o',
+    'A3': 'p',
+    'B3': 'a',
+    'C4': 's',
+    'D4': 'd',
+    'E4': 'f',
+    'F4': 'g',
+    'G4': 'h',
+    'A4': 'j',
+    'B4': 'k',
+    'C5': 'l',
+    'D5': 'z',
+    'E5': 'x',
+    'F5': 'c',
+    'G5': 'v',
+    'A5': 'b',
+    'B5': 'n',
+    'C6': 'm',
+    'C♯2': '!',
+    'D♯2': '@',
+    'E♯2': '#',
+    'F♯2': 'Q',
+    'G♯2': 'W',
+    'A♯2': 'E',
+    'C♯3': 'T',
+    'D♯3': 'Y',
+    'F♯3': 'I',
+    'G♯3': 'O',
+    'A♯3': 'P',
+    'C♯4': 'S',
+    'D♯4': 'D',
+    'F♯4': 'G',
+    'G♯4': 'H',
+    'A♯4': 'J',
+    'C♯5': 'L',
+    'D♯5': 'Z',
+    'F♯5': 'C',
+    'G♯5': 'V',
+    'A♯5': 'B',
+  };
